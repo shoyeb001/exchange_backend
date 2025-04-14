@@ -1,20 +1,21 @@
 import { IUserRequest } from "../@types/user.type";
 import userSchema from "../models/user.model";
 import { registerValidator } from "../validator/register.validator"
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import JWTService from "../services/jwtService";
 import { date } from "joi";
+import CustomErrorHandler from "../services/customErrorHandler";
 const registerController = {
-    async register(req: Request, res: Response) {
+    async register(req: Request, res: Response,next:NextFunction) {
         try {
             const { error } = registerValidator.validate(req.body);
             if (error) {
-                res.status(403).json({ error: error.details[0].message });
+                return next(error);
             }
             const exist = await userSchema.exists({ email: req.body.email });
             if (exist) {
-                res.status(400).json({ error: "Email already exists" });
+                return next(CustomErrorHandler.alreadyExist("Email already exists"));
             }
             const { name, email, password }: IUserRequest = req.body;
             const hashedPassword = await bcrypt.hash(password, 10);
@@ -25,7 +26,7 @@ const registerController = {
                 role: savedUser.role,
             });
             res.status(201).json({
-                status: "success",
+                success:true,
                 message: "User registered successfully",
                 data: {
                     name: savedUser.name,
@@ -35,11 +36,7 @@ const registerController = {
             });
 
         } catch (error) {
-            return res.status(500).json({
-                status: "error",
-                message: "Internal server error",
-                error: error
-            })
+            return next(error);
         }
     }
 }
