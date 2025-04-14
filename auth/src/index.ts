@@ -9,8 +9,6 @@ app.use(express.json());
 //         credentials: true,
 //     })
 // )
-
-
 app.get("/", (req, res: Response) => {
     const health = {
         uptime: process.uptime(),
