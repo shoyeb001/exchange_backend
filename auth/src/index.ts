@@ -2,6 +2,7 @@ import express, { Response } from "express";
 import { config } from "./config";
 import errorHandler from "./middleware/errorHandler";
 import dbConnection from "./utils/db";
+import router from "./routes/route";
 export const app = express();
 app.use(express.json());
 // app.use(
@@ -25,6 +26,7 @@ app.get("/", (req, res: Response) => {
             health
         })
 })
+app.use("/api",router)
 app.use((req, res, next) => {
     res.status(404).json({
         success: false,

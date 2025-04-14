@@ -4,8 +4,8 @@ import { registerValidator } from "../validator/register.validator"
 import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import JWTService from "../services/jwtService";
-import { date } from "joi";
 import CustomErrorHandler from "../services/customErrorHandler";
+
 const registerController = {
     async register(req: Request, res: Response,next:NextFunction) {
         try {
