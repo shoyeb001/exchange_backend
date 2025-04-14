@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import {ValidationError} from "joi";
 import CustomErrorHandler from "../services/customErrorHandler";
+import {config} from "../config";
 
 function errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
   let errorStatus = err.status || 500;
@@ -17,11 +18,11 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
     errorMessage = err.message;
   }
 
-  return res.status(errorStatus).json({
+  res.status(errorStatus).json({
     success: false,
     status: errorStatus,
     message: errorMessage,
-    stack: err.stack, 
+    stack: config.NODE_ENV === "development" ? err.stack : undefined, 
   });
 }
 

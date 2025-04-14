@@ -1,6 +1,7 @@
 import express, { Response } from "express";
 import { config } from "./config";
 import errorHandler from "./middleware/errorHandler";
+import dbConnection from "./utils/db";
 export const app = express();
 app.use(express.json());
 // app.use(
@@ -31,6 +32,7 @@ app.use((req, res, next) => {
     });
 });
 app.use(errorHandler);
-app.listen(config.PORT, () => {
+app.listen(config.PORT,async () => {
+    await dbConnection();
     console.log(`Server is running on port ${config.PORT}`);
 });
