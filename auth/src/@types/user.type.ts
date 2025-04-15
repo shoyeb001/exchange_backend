@@ -8,3 +8,8 @@ export interface IUserModel extends IUserRequest {
     role: string;
     isActive: boolean;
 }
+
+export interface ILoginRequest {
+  email: string;
+  password: string;
+}
