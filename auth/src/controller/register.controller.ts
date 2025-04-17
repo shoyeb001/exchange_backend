@@ -34,7 +34,6 @@ const registerController = {
                     accessToken
                 }
             });
-
         } catch (error) {
             return next(error);
         }
