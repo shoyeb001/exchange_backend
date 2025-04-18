@@ -5,6 +5,7 @@ import { loginValidator } from "../validator/login.validator";
 import CustomErrorHandler from "../services/customErrorHandler";
 import JWTService from "../services/jwtService";
 import bcrypt from "bcrypt";
+import { RedisManager } from "../services/redisManager";
 
 const loginController = {
   async login(req: Request, res: Response, next: NextFunction) {
@@ -13,7 +14,6 @@ const loginController = {
       if (error) {
         return next(error);
       }
-
       const { email, password }: ILoginRequest = req.body;
       const user = await userSchema.findOne({ email });
       if (!user) {
@@ -25,11 +25,13 @@ const loginController = {
           CustomErrorHandler.invalidCredentials("Invalid email or password")
         );
       }
+      const sessionId = `sess_${user._id}_${Date.now()}`;
       const accessToken = JWTService.sign({
-        id: user._id,
-        role: user.role,
+          id: user._id,
+          role: user.role,
+          sessionId: sessionId
       });
-
+      await RedisManager.getInstance().set(sessionId, user._id.toString(), 60 * 60 * 24 * 7); 
       res.status(200).json({
         success: true,
         message: "Login successful",

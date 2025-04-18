@@ -5,9 +5,10 @@ import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import JWTService from "../services/jwtService";
 import CustomErrorHandler from "../services/customErrorHandler";
+import { RedisManager } from "../services/redisManager";
 
 const registerController = {
-    async register(req: Request, res: Response,next:NextFunction) {
+    async register(req: Request, res: Response, next: NextFunction) {
         try {
             const { error } = registerValidator.validate(req.body);
             if (error) {
@@ -21,12 +22,15 @@ const registerController = {
             const hashedPassword = await bcrypt.hash(password, 10);
             const user = new userSchema({ name, email, password: hashedPassword, role: "user", isActive: true });
             const savedUser = await user.save();
+            const sessionId = `sess_${savedUser._id}_${Date.now()}`;
             const accessToken = JWTService.sign({
                 id: savedUser._id,
                 role: savedUser.role,
+                sessionId: sessionId
             });
+            await RedisManager.getInstance().set(sessionId, savedUser._id.toString(), 60 * 60 * 24 * 7); 
             res.status(201).json({
-                success:true,
+                success: true,
                 message: "User registered successfully",
                 data: {
                     name: savedUser.name,
