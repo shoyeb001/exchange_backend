@@ -11,7 +11,6 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
     errorStatus = 422;
     errorMessage = err.details?.[0]?.message || err.message;
   }
-
   
   if (err instanceof CustomErrorHandler) {
     errorStatus = err.status;

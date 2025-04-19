@@ -12,7 +12,7 @@ const registerController = {
             const { error } = registerValidator.validate(req.body);
             if (error) {
                 return next(error);
-            }
+            } 
             const exist = await userSchema.exists({ email: req.body.email });
             if (exist) {
                 return next(CustomErrorHandler.alreadyExist("Email already exists"));
