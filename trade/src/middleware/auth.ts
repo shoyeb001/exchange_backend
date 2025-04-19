@@ -15,8 +15,12 @@ const auth = async (req: any, res: Response, next: NextFunction) => {
     }
 
     const token = authHeader.split(' ')[1];
+    console.log(token)
     try {
         const { id, role, sessionId } = (JWTService.verify(token)) as JwtPayload;
+        console.log(role, "Role____")
+        console.log(id, "Id______")
+        console.log(sessionId, "sessionID------")
         if (!id || !role) {
             return next(CustomErrorHandler.unAuthorized('Invalid token'));
         }
@@ -26,6 +30,7 @@ const auth = async (req: any, res: Response, next: NextFunction) => {
             sessionId
         };
         req.user = user;
+        console.log(user)
         next();
     } catch (err) {
         return next(CustomErrorHandler.unAuthorized());

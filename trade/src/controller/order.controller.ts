@@ -14,6 +14,7 @@ const orderController = {
             const userId = req.user.id;
             const { market, side, type, price, quantity, timeInForce
             } = req.body;
+            console.log(userId)
             const response = await RedisManager.getInstance().sendAndAwait({
                 type: fnTypes.CREATE_ORDER,
                 data: {
@@ -24,7 +25,8 @@ const orderController = {
                     price,
                     quantity,
                     timeInForce,
-                    userId
+                    userId,
+                    timeStamp: Date.now()
                 }
             });
             res.status(200).json({

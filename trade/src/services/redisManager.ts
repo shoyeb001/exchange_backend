@@ -3,6 +3,7 @@ import { createClient, RedisClientType } from "redis";
 export class RedisManager {
     private client: RedisClientType;
     private publisher: RedisClientType;
+    private subscriber: RedisClientType;
     private static instance: RedisManager;
 
     private constructor() {
@@ -10,6 +11,8 @@ export class RedisManager {
         this.client.connect();
         this.publisher = createClient();
         this.publisher.connect();
+        this.subscriber = createClient();
+        this.subscriber.connect();
     }
 
     public static getInstance() {
@@ -40,8 +43,8 @@ export class RedisManager {
     public sendAndAwait(message: any) {
         return new Promise((resolve) => {
             const id = this.getRandomClientId();
-            this.client.subscribe(id, (message) => {
-                this.client.unsubscribe(id);
+            this.subscriber.subscribe(id, (message) => {
+                this.subscriber.unsubscribe(id);
                 resolve(message);
             });
             this.publisher.lPush("messages", JSON.stringify({ clientId: id, message }))
