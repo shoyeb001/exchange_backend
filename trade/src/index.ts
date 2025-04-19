@@ -1,7 +1,7 @@
 import express, { Response } from 'express';
 import { config } from "./config";
 import errorHandler from './middleware/errorHandler';
-
+import router from './routes/route';
 export const app = express();
 app.use(express.json());
 app.get("/", (req, res: Response) => {
@@ -19,6 +19,7 @@ app.get("/", (req, res: Response) => {
             health
         })
 });
+app.use('/api', router);
 app.use(errorHandler);
 app.listen(config.PORT, async () => {
     console.log(`Server is running on port ${config.PORT}`);
