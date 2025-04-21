@@ -3,8 +3,8 @@ const express =require("express");
 const httpProxy =require("express-http-proxy");
 
 const app=express();
-app.use("/auth",httpProxy("http://localhost:3001"))
-app.use("/trade",httpProxy("http://localhost:3002"))
+app.use("/auth",httpProxy('http://auth:3001'))
+app.use("/trade",httpProxy('http://trade:3002'))
 
 
 app.listen(PORT,()=>{
