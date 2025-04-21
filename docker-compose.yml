@@ -54,6 +54,17 @@ services:
     volumes:
       - ./trade:/app
     command: npm run dev
+  
+  engine:
+    build: ./engine
+    container_name: engine
+    depends_on: 
+      - mongo-auth
+      - redis
+      - trade
+    volumes:
+      - ./engine:/app
+    command: npm run dev
     
   gateway:
     build: ./gateway
