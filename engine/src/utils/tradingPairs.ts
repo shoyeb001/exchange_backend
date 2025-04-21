@@ -1,4 +1,4 @@
-const TRADING_PAIRS = [
+export const TRADING_PAIRS = [
     { base: "ETH", quote: "USDC" },
     { base: "BTC", "quote": "USDC" },
     { base: "SOL", "quote": "USDC" },

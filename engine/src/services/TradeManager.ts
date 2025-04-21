@@ -1,6 +1,7 @@
 import { RedisManager } from "./redisManager";
 import { Fill, Order, OrderBook } from "../store/orderbook";
 import { CREATE_ORDER, MessageFromApi, ON_RAMP } from "../@types/order.type";
+import { TRADING_PAIRS } from "../utils/tradingPairs";
 
 export const BASE_CURRENCY = 'USDC';
 interface UserBalance {
@@ -44,9 +45,14 @@ export class TradeManager {
                 }
                 break;
             case ON_RAMP:
+                console.log("Running on ramp")
                 const userId = message.data.userId;
                 const amount = message.data.amount;
-                this.addFunds(userId, amount);
+                const response = this.addFunds(userId, amount);
+                RedisManager.getInstance().sendToApi(clientId, {
+                    type: "FUND_ADDED",
+                    payload: { response }
+                });
                 break;
         }
     }
@@ -131,8 +137,10 @@ export class TradeManager {
                     locked: 0
                 }
             });
+            return userBalance;
         } else {
             userBalance[BASE_CURRENCY].available += amount;
+            return userBalance
         }
     }
 }

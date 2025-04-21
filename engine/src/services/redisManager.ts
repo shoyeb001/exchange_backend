@@ -23,6 +23,6 @@ export class RedisManager {
         this.subscriber.publish(clientId, JSON.stringify(message));
     }
     public async popMessageFromQueue(name: string) {
-        return await this.subscriber.rPop(name)
+        return await this.publisher.rPop(name)
     }
 }

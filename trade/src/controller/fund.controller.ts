@@ -14,12 +14,17 @@ const fundController = {
             }
             const userId = req.user.id;
             const amount = req.body.amount;
-            RedisManager.getInstance().sendAndAwait({
+            const response = await RedisManager.getInstance().sendAndAwait({
                 type: "ON_RAMP",
                 data: {
                     userId,
                     amount
                 }
+            })
+            res.status(200).json({
+                success: true,
+                message: "Funds added successfully",
+                data: JSON.parse(response as string)
             })
         } catch (error) {
             next(error)

@@ -32,7 +32,7 @@ const orderController = {
             res.status(200).json({
                 success: true,
                 message: "Order created successfully",
-                data: response
+                data: JSON.parse(response as string)
             })
         } catch (error) {
             next(error)
