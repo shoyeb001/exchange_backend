@@ -1,0 +1,119 @@
+import { RedisManager } from "./redisManager";
+import { Fill, Order, OrderBook } from "../store/orderbook";
+import { CREATE_ORDER, MessageFromApi } from "../@types/order.type";
+
+export const BASE_CURRENCY = 'USDC';
+interface UserBalance {
+    [key: string]: {
+        available: number;
+        locked: number;
+    }
+}
+
+export class TradeManager {
+    private orderBooks: OrderBook[] = [];
+    private userBalances: Map<string, UserBalance> = new Map();
+
+    constructor() {
+        this.orderBooks = TRADING_PAIRS.map(pair => new OrderBook(pair.base, pair.quote, [], [], 0, 0))
+    }
+
+    process({ message, clientId }: { message: any, clientId: string }) {
+        switch (message.type) {
+            case CREATE_ORDER:
+                try {
+                    const { executedQuantity, fills, clientOrderId } = this.createOrder(message.data.market, message.data.price, message.data.quantity, message.data.side, message.data.userId, message.data.clientOrderId, message.data.timeInForce, message.data.type);
+                    RedisManager.getInstance().sendToApi(clientId, {
+                        type: "ORDER_PLACED",
+                        payload: {
+                            executedQuantity,
+                            fills,
+                            clientOrderId
+                        }
+                    });
+                } catch (error) {
+                    console.log(error);
+                    RedisManager.getInstance().sendToApi(clientId, {
+                        type: "ORDER_CANCELLED",
+                        payload: {
+                            orderId: "",
+                            executedQty: 0,
+                            remainingQty: 0
+                        }
+                    });
+                }
+        }
+    }
+
+    createOrder(market: string, price: number, quantity: number, side: string, userId: string, clientOrderId: string, timeInForce: string, type: string) {
+        const orderBook = this.orderBooks.find(book => book.ticker() === market);
+        const baseAsset = market.split('_')[0];
+        const quoteAsset = market.split('_')[1];
+        if (!orderBook) {
+            throw new Error("No Market Found");
+        }
+        this.checkAndLockFunds(baseAsset, quoteAsset, side, userId, price, quantity);
+        const order: Order = {
+            id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+            side,
+            price,
+            quantity,
+            userId,
+            clientOrderId,
+            filled: 0,
+            timeInForce,
+            type,
+            timestamp: Date.now()
+        }
+        const { executedQuantity, fills } = orderBook.addOrder(order);
+        this.updateBalance(userId, quoteAsset, baseAsset, side, fills, executedQuantity)
+        return {
+            executedQuantity,
+            fills,
+            clientOrderId: order.clientOrderId,
+        }
+    }
+
+    updateBalance(userId: string, quoteAsset: string, baseAsset: string, side: string, fills: Fill[], executedQuantity: number) {
+        if (side === "buy") {
+            fills.forEach(fill => {
+                //BTC remove from saler locked balance
+                this.userBalances.get(fill.otherUserId)![baseAsset].locked -= fill.quantity;
+                //BTC add to buyer available balance
+                this.userBalances.get(userId)![baseAsset].available += fill.quantity;
+                //USDC remove from buyer locked balance
+                this.userBalances.get(userId)![quoteAsset].locked -= fill.price * fill.quantity;
+                //USDC available to seller balance
+                this.userBalances.get(fill.otherUserId)![quoteAsset].available += fill.price * fill.quantity;
+            })
+        } else {
+            fills.forEach(fill => {
+                //BTC remove from seller locked
+                this.userBalances.get(userId)![baseAsset].locked -= fill.quantity;
+                //BTC add to seller available
+                this.userBalances.get(fill.otherUserId)![baseAsset].available += fill.quantity;
+                //USDC remove from buyer locked
+                this.userBalances.get(fill.otherUserId)![quoteAsset].locked -= fill.price * fill.quantity;
+                //USDC add to buyer available
+                this.userBalances.get(userId)![quoteAsset].available += fill.price * fill.quantity;
+            })
+        }
+    }
+
+    checkAndLockFunds(baseAsset: string, quoteAsset: string, side: string, userId: string, price: number, quantity: number) {
+        if (side === "buy") {
+            if ((this.userBalances.get(userId)?.[quoteAsset]?.available || 0) < quantity * price) {
+                throw new Error("Insufficient Funds");
+            }
+            this.userBalances.get(userId)![quoteAsset].available -= quantity * price;
+            this.userBalances.get(userId)![quoteAsset].locked += quantity * price;
+        } else {
+            if ((this.userBalances.get(userId)?.[baseAsset]?.available || 0) < quantity) {
+                throw new Error("Insufficient assets");
+            }
+            this.userBalances.get(userId)![baseAsset].available -= quantity;
+            this.userBalances.get(userId)![baseAsset].locked += quantity;
+        }
+    }
+
+}
