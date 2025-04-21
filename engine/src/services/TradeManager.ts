@@ -1,6 +1,6 @@
 import { RedisManager } from "./redisManager";
 import { Fill, Order, OrderBook } from "../store/orderbook";
-import { CREATE_ORDER, MessageFromApi } from "../@types/order.type";
+import { CREATE_ORDER, MessageFromApi, ON_RAMP } from "../@types/order.type";
 
 export const BASE_CURRENCY = 'USDC';
 interface UserBalance {
@@ -42,6 +42,12 @@ export class TradeManager {
                         }
                     });
                 }
+                break;
+            case ON_RAMP:
+                const userId = message.data.userId;
+                const amount = message.data.amount;
+                this.addFunds(userId, amount);
+                break;
         }
     }
 
@@ -116,4 +122,17 @@ export class TradeManager {
         }
     }
 
+    addFunds(userId: string, amount: number) {
+        const userBalance = this.userBalances.get(userId);
+        if (!userBalance) {
+            this.userBalances.set(userId, {
+                [BASE_CURRENCY]: {
+                    available: amount,
+                    locked: 0
+                }
+            });
+        } else {
+            userBalance[BASE_CURRENCY].available += amount;
+        }
+    }
 }
