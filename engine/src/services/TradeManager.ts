@@ -1,6 +1,6 @@
 import { RedisManager } from "./redisManager";
 import { Fill, Order, OrderBook } from "../store/orderbook";
-import { CREATE_ORDER, MessageFromApi, ON_RAMP } from "../@types/order.type";
+import { CREATE_ORDER, GET_OPEN_ORDERS, MessageFromApi, ON_RAMP } from "../@types/order.type";
 import { TRADING_PAIRS } from "../utils/tradingPairs";
 
 export const BASE_CURRENCY = 'USDC';
@@ -54,6 +54,21 @@ export class TradeManager {
                     payload: { response }
                 });
                 break;
+            case GET_OPEN_ORDERS:
+                try {
+                    const openOrderBook = this.orderBooks.find(book => book.ticker() === message.data.market);
+                    if (!openOrderBook) {
+                        throw new Error("No market found")
+                    }
+                    const openOrders = openOrderBook.getOpenOrders(message.data.userId);
+                    RedisManager.getInstance().sendToApi(clientId, {
+                        type: "OPEN_ORDERS",
+                        payload: openOrders
+                    })
+                } catch (error) {
+                    console.log(error);
+                }
+
         }
     }
 

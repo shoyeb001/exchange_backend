@@ -41,8 +41,6 @@ services:
   #     - ./engine:/app
   #   command: npm run dev
 
-  
-
   trade:
     build: ./trade
     container_name: trade
@@ -54,18 +52,18 @@ services:
     volumes:
       - ./trade:/app
     command: npm run dev
-  
+
   engine:
     build: ./engine
     container_name: engine
-    depends_on: 
+    depends_on:
       - mongo-auth
       - redis
       - trade
     volumes:
       - ./engine:/app
     command: npm run dev
-    
+
   gateway:
     build: ./gateway
     container_name: gateway
