@@ -6,15 +6,12 @@ export class RedisManager {
 
     constructor() {
         this.publisher = createClient({
-            url: 'redis://127.0.0.1:6379'
-        }
-        );
+            url: 'redis://redis:6379'
+        });
         this.publisher.connect();
-        this.subscriber = createClient(
-            {
-                url: 'redis://127.0.0.1:6379'
-            }
-        );
+        this.subscriber = createClient({
+            url: 'redis://redis:6379'
+        });
         this.subscriber.connect();
     }
     public static getInstance() {
