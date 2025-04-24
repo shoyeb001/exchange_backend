@@ -1,6 +1,6 @@
 import { RedisManager } from "./redisManager";
 import { Fill, Order, OrderBook } from "../store/orderbook";
-import { CREATE_ORDER, GET_OPEN_ORDERS, MessageFromApi, ON_RAMP } from "../@types/order.type";
+import { CANCEL_ORDER, CREATE_ORDER, GET_DEPTH, GET_OPEN_ORDERS, MessageFromApi, ON_RAMP } from "../@types/order.type";
 import { TRADING_PAIRS } from "../utils/tradingPairs";
 
 export const BASE_CURRENCY = 'USDC';
@@ -68,7 +68,81 @@ export class TradeManager {
                 } catch (error) {
                     console.log(error);
                 }
-
+            case GET_DEPTH:
+                try {
+                    const market = message.data.market;
+                    const orderBook = this.orderBooks.find(book => book.ticker() === market);
+                    if (!orderBook) {
+                        throw new Error("No market found");
+                    }
+                    const depth = orderBook.getDepth();
+                    RedisManager.getInstance().sendToApi(clientId, {
+                        type: "DEPTH",
+                        payload: depth
+                    });
+                } catch (error) {
+                    console.log(error);
+                    RedisManager.getInstance().sendToApi(clientId, {
+                        type: "DEPTH",
+                        payload: {
+                            bids: [],
+                            asks: []
+                        }
+                    });
+                }
+            case CANCEL_ORDER:
+                try {
+                    const orderId = message.data.orderId;
+                    const market = message.data.market;
+                    const orderBook = this.orderBooks.find(book => book.ticker() === market);
+                    const quoteAsset = market.split('_')[1];
+                    if (!orderBook) {
+                        throw new Error("No market found");
+                    }
+                    if (message.data.side === "buy") {
+                        const order = orderBook.getOrder(orderId, "buy");
+                        if (!order) {
+                            throw new Error("Invalid order")
+                        }
+                        const price = orderBook.cancelBid(order);
+                        const leftQtyPrice = (order.quantity - order.filled) * price!;
+                        this.userBalances.get(order.userId)![BASE_CURRENCY].available += leftQtyPrice;
+                        this.userBalances.get(order.userId)![BASE_CURRENCY].locked -= leftQtyPrice;
+                        if (price) {
+                            //update market depth
+                        }
+                        RedisManager.getInstance().sendToApi(clientId, {
+                            type: "ORDER_CANCELLED",
+                            payload: {
+                                orderId,
+                                executedQty: order.filled,
+                                remainingQty: order.quantity - order.filled
+                            }
+                        })
+                    } else {
+                        const order = orderBook.getOrder(orderId, "sale");
+                        if (!order) {
+                            throw new Error("Invalid order");
+                        }
+                        const price = orderBook.cancelAsk(order);
+                        const leftQty = (order.quantity - order.filled);
+                        this.userBalances.get(order.userId)![quoteAsset].available += leftQty;
+                        this.userBalances.get(order.userId)![quoteAsset].locked -= leftQty;
+                        if (price) {
+                            //update market depth
+                        }
+                        RedisManager.getInstance().sendToApi(clientId, {
+                            type: "ORDER_CANCELLED",
+                            payload: {
+                                orderId,
+                                executedQty: order.filled,
+                                remainingQty: order.quantity - order.filled
+                            }
+                        })
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
         }
     }
 

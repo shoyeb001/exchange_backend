@@ -3,4 +3,5 @@ export const fnTypes = {
     ON_RAMP: "ON_RAMP",
     CANCEL_ORDER: "CANCEL_ORDER",
     CREATE_ORDER: "CREATE_ORDER",
+    GET_OPEN_ORDERS: "GET_OPEN_ORDERS",
 }

@@ -7,4 +7,10 @@ export const createOrderSchema = Joi.object({
     side: Joi.string().valid("buy", "sell").required(),
     type: Joi.string().valid("limit", "market").required(),
     timeInForce: Joi.string().valid("GTC", "IOC", "FOK").required(), // GTC = Good Till Cancelled, IOC = Immediate or Cancel, FOK = Fill or Kill
-})
+});
+
+export const cancelOrderSchema = Joi.object({
+    orderId: Joi.string().required(),
+    market: Joi.string().required(),
+    side: Joi.string().valid("buy", "sell").required(),
+});

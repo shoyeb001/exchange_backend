@@ -200,4 +200,12 @@ export class OrderBook {
             return price
         }
     }
+
+    getOrder(orderId: string, side: string) {
+        if (side === "buy") {
+            return this.bids.find(bid => bid.id === orderId);
+        } else {
+            return this.asks.find(ask => ask.id === orderId)
+        }
+    }
 }
