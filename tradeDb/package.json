@@ -1,0 +1,22 @@
+{
+  "name": "db",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": " node dist/index.js",
+    "dev": "npm run build && npm run start",
+    "generate": "drizzle-kit generate --config ./src/drizzle.config.ts",
+    "migrate": "drizzle-kit migrate --config ./src/drizzle.config.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "drizzle-kit": "^0.31.0",
+    "drizzle-orm": "^0.43.1",
+    "pg": "^8.15.5",
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.2"
+  }
+}
