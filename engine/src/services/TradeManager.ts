@@ -169,13 +169,58 @@ export class TradeManager {
         const { executedQuantity, fills } = orderBook.addOrder(order);
         this.updateBalance(userId, quoteAsset, baseAsset, side, fills, executedQuantity)
         this.createDbTrade(fills, userId, market);
+        //addDBOrders
+        this.addDbOrder(order, market, executedQuantity);
         //updateDBOrders
+        this.updateOrderDb(fills);
         //uplish ws depth update
         //publish ws trades
         return {
             executedQuantity,
             fills,
             clientOrderId: order.clientOrderId,
+        }
+    }
+
+    addDbOrder(order: Order, market: string, executedQty: number) {
+        RedisManager.getInstance().pushMessage({
+            type: "ADD_ORDER",
+            payload: {
+                userId: order.userId,
+                clientOrderId: order.clientOrderId,
+                market: market,
+                side: order.side,
+                type: order.type,
+                price: order.price,
+                quantity: order?.quantity,
+                executedQuantity: executedQty,
+                status: this.generateOrderStatus(order.quantity, executedQty)
+            }
+        });
+    }
+
+    updateOrderDb(fills: Fill[]) {
+        fills.forEach(fill => {
+            RedisManager.getInstance().pushMessage({
+                type: "UPDATE_ORDER",
+                payload: {
+                    userId: fill.otherUserId,
+                    clientOrderId: fill.clientOrderId,
+                    side: fill.isBuyerMaker ? "buy" : "sell",
+                    quantity: fill.quantity,
+                }
+            })
+        })
+    }
+
+
+    generateOrderStatus(qty: number, executedQuantity: number) {
+        if (executedQuantity === 0) {
+            return "open"
+        } else if (executedQuantity === qty) {
+            return "filled"
+        } else if (executedQuantity < qty) {
+            return "partially_filled"
         }
     }
 
