@@ -75,5 +75,19 @@ services:
     volumes:
       - ./gateway:/app
     command: npm run dev
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_DB: tradeDb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
 volumes:
   mongo-auth-data:
+  pgdata:

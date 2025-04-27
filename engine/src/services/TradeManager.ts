@@ -168,11 +168,31 @@ export class TradeManager {
         }
         const { executedQuantity, fills } = orderBook.addOrder(order);
         this.updateBalance(userId, quoteAsset, baseAsset, side, fills, executedQuantity)
+        this.createDbTrade(fills, userId, market);
+        //updateDBOrders
+        //uplish ws depth update
+        //publish ws trades
         return {
             executedQuantity,
             fills,
             clientOrderId: order.clientOrderId,
         }
+    }
+
+    createDbTrade(fills: Fill[], userId: string, market: string) {
+        fills.forEach(fill => {
+            RedisManager.getInstance().pushMessage({
+                type: "TRADE_ADDED",
+                payload: {
+                    symbol: market,
+                    tradeId: fill.tradeId,
+                    price: fill.price,
+                    quantity: fill.quantity,
+                    quoteQuantity: fill.quoteQuantity,
+                    timestamp: Date.now()
+                }
+            })
+        })
     }
 
     updateBalance(userId: string, quoteAsset: string, baseAsset: string, side: string, fills: Fill[], executedQuantity: number) {

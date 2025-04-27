@@ -16,7 +16,9 @@ export interface Fill {
     quantity: number;
     tradeId: number;
     otherUserId: string;
-    clientOrderId: string
+    clientOrderId: string;
+    isBuyerMaker: boolean;
+    quoteQuantity: string;
 }
 
 export interface AddOrderResponse {
@@ -100,7 +102,9 @@ export class OrderBook {
                     quantity: filledQuantity,
                     tradeId: this.lastTradeId + 1,
                     otherUserId: this.asks[i].userId,
-                    clientOrderId: this.asks[i].clientOrderId
+                    clientOrderId: this.asks[i].clientOrderId,
+                    isBuyerMaker: true,
+                    quoteQuantity: (this.asks[i].quantity * this.asks[i].price).toString()
                 })
             }
         }
@@ -130,7 +134,9 @@ export class OrderBook {
                     quantity: filledQuantity,
                     tradeId: this.lastTradeId + 1,
                     otherUserId: this.bids[i].userId,
-                    clientOrderId: this.bids[i].clientOrderId
+                    clientOrderId: this.bids[i].clientOrderId,
+                    isBuyerMaker: false,
+                    quoteQuantity: (this.bids[i].quantity * this.bids[i].price).toString()
                 })
             }
         }
