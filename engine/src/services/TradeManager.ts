@@ -3,7 +3,9 @@ import { Fill, Order, OrderBook } from "../store/orderbook";
 import { CANCEL_ORDER, CREATE_ORDER, GET_DEPTH, GET_OPEN_ORDERS, MessageFromApi, ON_RAMP } from "../@types/order.type";
 import { TRADING_PAIRS } from "../utils/tradingPairs";
 import fs from 'fs';
+import dotenv from "dotenv";
 
+dotenv.config();
 export const BASE_CURRENCY = 'USDC';
 interface UserBalance {
     [key: string]: {
@@ -17,14 +19,18 @@ export class TradeManager {
     private userBalances: Map<string, UserBalance> = new Map();
 
     constructor() {
+        console.log("Code updating")
+        console.log(process.env.WITH_SNAPSHOT)
         let snapshot = null;
         try {
             if (process.env.WITH_SNAPSHOT) {
+                console.log("snapshots exits")
                 snapshot = fs.readFileSync('./snapshot.json');
             }
         } catch (error) {
             console.log("No snapshot found")
         }
+        this.orderBooks = TRADING_PAIRS.map(pair => new OrderBook(pair.base, pair.quote, [], [], 0, 0))
         if (snapshot) {
             const snapshotData = JSON.parse(snapshot.toString());
             // this.orderBooks = snapshotData.orderbooks.map((orderbook: any) => {
@@ -32,7 +38,10 @@ export class TradeManager {
             // });
             this.userBalances = new Map(snapshotData.userBalances);
         }
-        this.orderBooks = TRADING_PAIRS.map(pair => new OrderBook(pair.base, pair.quote, [], [], 0, 0))
+        setInterval(() => {
+            this.saveSnapshot();
+        }, 1000 * 3);
+
     }
 
     saveSnapshot() {
@@ -42,6 +51,7 @@ export class TradeManager {
         }
         fs.writeFileSync('./snapshot.json', JSON.stringify(snapshotData));
     }
+
 
     process({ message, clientId }: { message: any, clientId: string }) {
         switch (message.type) {
@@ -266,10 +276,17 @@ export class TradeManager {
 
     updateBalance(userId: string, quoteAsset: string, baseAsset: string, side: string, fills: Fill[], executedQuantity: number) {
         if (side === "buy") {
-            fills.forEach(fill => {
+            fills?.forEach(fill => {
                 //BTC remove from saler locked balance
+                if (!this.userBalances.get(fill.otherUserId)?.[baseAsset]) {
+                    this.userBalances.get(fill.otherUserId)![baseAsset] = {
+                        available: 0,
+                        locked: 0
+                    }
+                }
                 this.userBalances.get(fill.otherUserId)![baseAsset].locked -= fill.quantity;
                 //BTC add to buyer available balance
+
                 this.userBalances.get(userId)![baseAsset].available += fill.quantity;
                 //USDC remove from buyer locked balance
                 this.userBalances.get(userId)![quoteAsset].locked -= fill.price * fill.quantity;
@@ -277,12 +294,19 @@ export class TradeManager {
                 this.userBalances.get(fill.otherUserId)![quoteAsset].available += fill.price * fill.quantity;
             })
         } else {
-            fills.forEach(fill => {
+            fills?.forEach(fill => {
                 //BTC remove from seller locked
                 this.userBalances.get(userId)![baseAsset].locked -= fill.quantity;
                 //BTC add to seller available
+                if (!this.userBalances.get(fill.otherUserId)?.[baseAsset]) {
+                    this.userBalances.get(fill.otherUserId)![baseAsset] = {
+                        available: 0,
+                        locked: 0
+                    }
+                }
                 this.userBalances.get(fill.otherUserId)![baseAsset].available += fill.quantity;
                 //USDC remove from buyer locked
+
                 this.userBalances.get(fill.otherUserId)![quoteAsset].locked -= fill.price * fill.quantity;
                 //USDC add to buyer available
                 this.userBalances.get(userId)![quoteAsset].available += fill.price * fill.quantity;
@@ -292,12 +316,19 @@ export class TradeManager {
 
     checkAndLockFunds(baseAsset: string, quoteAsset: string, side: string, userId: string, price: number, quantity: number) {
         if (side === "buy") {
+            console.log(this.userBalances.get(userId)?.[baseAsset]?.available);
+            console.log(this.userBalances.get(userId)?.[quoteAsset]?.available);
+            console.log(this.userBalances);
             if ((this.userBalances.get(userId)?.[quoteAsset]?.available || 0) < quantity * price) {
                 throw new Error("Insufficient Funds");
             }
             this.userBalances.get(userId)![quoteAsset].available -= quantity * price;
             this.userBalances.get(userId)![quoteAsset].locked += quantity * price;
         } else {
+            console.log(this.userBalances.get(userId)?.[baseAsset]?.available);
+            console.log(this.userBalances.get(userId)?.[quoteAsset]?.available);
+            console.log(this.userBalances);
+
             if ((this.userBalances.get(userId)?.[baseAsset]?.available || 0) < quantity) {
                 throw new Error("Insufficient assets");
             }

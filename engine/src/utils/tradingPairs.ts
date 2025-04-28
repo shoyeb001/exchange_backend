@@ -1,7 +1,7 @@
 export const TRADING_PAIRS = [
     { base: "ETH", quote: "USDC" },
-    { base: "BTC", "quote": "USDC" },
-    { base: "SOL", "quote": "USDC" },
+    { base: "BTC", quote: "USDC" },
+    { base: "SOL", quote: "USDC" },
     { base: "ETH", quote: "USDC" },
     { base: "BTC", quote: "USDC" },
     { base: "SOL", quote: "USDC" },
