@@ -5,6 +5,7 @@ const order = pgTable("order", {
     userId: varchar("userId").notNull(),
     market: varchar("market").notNull(),
     side: varchar("side").notNull(),
+    clientOrderId: varchar("clientOrderId").notNull(),
     type: varchar("type", { enum: ["limit", "market"] }).notNull(),
     price: numeric("price").notNull(),
     quantity: numeric("quantity").notNull(),

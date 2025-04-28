@@ -6,7 +6,7 @@ services:
     container_name: mongo-auth
     restart: always
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongo-auth-data:/data/db
 
@@ -88,6 +88,20 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
+
+  tradedb:
+    build: ./tradeDb
+    container_name: tradedb
+    ports:
+      - "3004:3004"
+    depends_on:
+      - postgres
+      - redis
+      - trade
+      - engine
+    volumes:
+      - ./tradedb:/app
+    command: npm run dev
 volumes:
   mongo-auth-data:
   pgdata:

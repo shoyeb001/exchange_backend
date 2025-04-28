@@ -1,0 +1,26 @@
+{
+    "orderbooks": [
+        {
+            "baseAsset": "BTC",
+            "bids": [],
+            "asks": [],
+            "lastTradeId": 0,
+            "currentPrice": 0
+        }
+    ],
+    "balances": [
+        [
+            "6807748cba57203f73b4dd5f",
+            {
+                "INR": {
+                    "available": 9999627815,
+                    "locked": 268377.9999999999
+                },
+                "BTC": {
+                    "available": 85884,
+                    "locked": 14049
+                }
+            }
+        ]
+    ]
+}
