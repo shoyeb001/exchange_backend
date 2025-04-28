@@ -2,6 +2,7 @@ import { RedisManager } from "./redisManager";
 import { Fill, Order, OrderBook } from "../store/orderbook";
 import { CANCEL_ORDER, CREATE_ORDER, GET_DEPTH, GET_OPEN_ORDERS, MessageFromApi, ON_RAMP } from "../@types/order.type";
 import { TRADING_PAIRS } from "../utils/tradingPairs";
+import fs from 'fs';
 
 export const BASE_CURRENCY = 'USDC';
 interface UserBalance {
@@ -16,7 +17,30 @@ export class TradeManager {
     private userBalances: Map<string, UserBalance> = new Map();
 
     constructor() {
+        let snapshot = null;
+        try {
+            if (process.env.WITH_SNAPSHOT) {
+                snapshot = fs.readFileSync('./snapshot.json');
+            }
+        } catch (error) {
+            console.log("No snapshot found")
+        }
+        if (snapshot) {
+            const snapshotData = JSON.parse(snapshot.toString());
+            // this.orderBooks = snapshotData.orderbooks.map((orderbook: any) => {
+            //     new OrderBook(orderbook.baseAsset, orderbook.quoteAsset, [], [], orderbook.currentPrice, orderbook.lastTradeId);
+            // });
+            this.userBalances = new Map(snapshotData.userBalances);
+        }
         this.orderBooks = TRADING_PAIRS.map(pair => new OrderBook(pair.base, pair.quote, [], [], 0, 0))
+    }
+
+    saveSnapshot() {
+        const snapshotData = {
+            orderBooks: this.orderBooks.map(orderBook => orderBook.getSnapshot()),
+            userBalances: Array.from(this.userBalances.entries())
+        }
+        fs.writeFileSync('./snapshot.json', JSON.stringify(snapshotData));
     }
 
     process({ message, clientId }: { message: any, clientId: string }) {
