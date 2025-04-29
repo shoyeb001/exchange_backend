@@ -200,6 +200,7 @@ export class TradeManager {
             type,
             timestamp: Date.now()
         }
+        console.log(order);
         const { executedQuantity, fills } = orderBook.addOrder(order);
         this.updateBalance(userId, quoteAsset, baseAsset, side, fills, executedQuantity)
         this.createDbTrade(fills, userId, market);
@@ -217,6 +218,7 @@ export class TradeManager {
     }
 
     addDbOrder(order: Order, market: string, executedQty: number) {
+        console.log(order)
         RedisManager.getInstance().pushMessage({
             type: "ADD_ORDER",
             payload: {

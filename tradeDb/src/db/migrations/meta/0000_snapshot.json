@@ -1,9 +1,97 @@
 {
-  "id": "5a6e6031-fe9e-4064-8de4-94878784f8a3",
+  "id": "74fc1928-7dfc-41cb-b9fd-fc61df63987a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.order": {
+      "name": "order",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "userId": {
+          "name": "userId",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "market": {
+          "name": "market",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "side": {
+          "name": "side",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "clientOrderId": {
+          "name": "clientOrderId",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price": {
+          "name": "price",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "executedQuantity": {
+          "name": "executedQuantity",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.trade": {
       "name": "trade",
       "schema": "",
@@ -21,12 +109,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "side": {
-          "name": "side",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
         "price": {
           "name": "price",
           "type": "numeric",
@@ -39,9 +121,21 @@
           "primaryKey": false,
           "notNull": true
         },
-        "time": {
-          "name": "time",
-          "type": "time",
+        "timestamp": {
+          "name": "timestamp",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quoteQuantity": {
+          "name": "quoteQuantity",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tradeId": {
+          "name": "tradeId",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         }
