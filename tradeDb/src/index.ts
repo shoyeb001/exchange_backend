@@ -1,10 +1,11 @@
 import { config } from "./config";
 import express from "express";
 import { startQueueService } from "./services/queueService";
-
+import { Response } from "express";
+import tradeController from "./controller/trade.controller";
 export const app = express();
 app.use(express.json());
-
+app.get("/trades", tradeController.getTrades);
 app.listen(config.PORT, () => {
     console.log(`Server is running on port ${config.PORT}`)
 });
