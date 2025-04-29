@@ -75,10 +75,12 @@ const orderController = {
                     market
                 }
             })
+            const data = JSON.parse(response as string);
+
             res.status(200).json({
                 success: true,
                 message: "Depth retrieved successfully",
-                data: JSON.parse(response as string)
+                data: data?.payload
             })
         } catch (error) {
             console.log(error);
