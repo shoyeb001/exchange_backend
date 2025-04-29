@@ -52,10 +52,11 @@ const orderController = {
                     userId
                 }
             });
+            const data = JSON.parse(response as string);
             res.status(200).json({
                 success: true,
                 message: "Orders retrieved successfully",
-                data: JSON.parse(response as string)
+                data: data?.payload
             })
         } catch (error) {
             console.log(error);
@@ -104,10 +105,11 @@ const orderController = {
                     side
                 }
             });
+            const data = JSON.parse(response as string);
             res.status(200).json({
                 success: true,
                 message: "Order cancelled successfully",
-                data: JSON.parse(response as string)
+                data: data?.payload
             });
         } catch (error) {
             console.log(error);
