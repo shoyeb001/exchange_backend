@@ -59,6 +59,7 @@ export class OrderBook {
 
     //addOrder function takes input order and return 
     addOrder(order: Order): AddOrderResponse {
+        console.log(this.asks, this.bids);
         if (order.side === 'buy') {
             const { executedQuantity, fills } = this.matchBid(order); //getting executed orders and all fills
             if (executedQuantity === order.quantity) {

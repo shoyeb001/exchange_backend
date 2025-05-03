@@ -25,23 +25,24 @@ export class TradeManager {
         try {
             if (process.env.WITH_SNAPSHOT) {
                 console.log("snapshots exits")
-                snapshot = fs.readFileSync('./snapshot.json');
+                snapshot = fs.readFileSync('./data/snapshot.json');
+                this.orderBooks = JSON.parse(snapshot.toString()).orderBooks.map((orderBook: any) => {
+                    return new OrderBook(orderBook.baseAsset, orderBook.quoteAsset, orderBook.bids, orderBook.asks, orderBook.currentPrice, orderBook.lastTradeId);
+                })
+            } else {
+                this.orderBooks = TRADING_PAIRS.map(pair => new OrderBook(pair.base, pair.quote, [], [], 0, 0))
             }
         } catch (error) {
             console.log("No snapshot found")
         }
-        this.orderBooks = TRADING_PAIRS.map(pair => new OrderBook(pair.base, pair.quote, [], [], 0, 0))
+
         if (snapshot) {
             const snapshotData = JSON.parse(snapshot.toString());
-            // this.orderBooks = snapshotData.orderbooks.map((orderbook: any) => {
-            //     new OrderBook(orderbook.baseAsset, orderbook.quoteAsset, [], [], orderbook.currentPrice, orderbook.lastTradeId);
-            // });
             this.userBalances = new Map(snapshotData.userBalances);
         }
         setInterval(() => {
             this.saveSnapshot();
         }, 1000 * 3);
-
     }
 
     saveSnapshot() {
@@ -49,7 +50,7 @@ export class TradeManager {
             orderBooks: this.orderBooks.map(orderBook => orderBook.getSnapshot()),
             userBalances: Array.from(this.userBalances.entries())
         }
-        fs.writeFileSync('./snapshot.json', JSON.stringify(snapshotData));
+        fs.writeFileSync('./data/snapshot.json', JSON.stringify(snapshotData));
     }
 
 
@@ -280,8 +281,8 @@ export class TradeManager {
         if (side === "buy") {
             fills?.forEach(fill => {
                 //BTC remove from saler locked balance
-                if (!this.userBalances.get(fill.otherUserId)?.[baseAsset]) {
-                    this.userBalances.get(fill.otherUserId)![baseAsset] = {
+                if (!this.userBalances.get(userId)?.[baseAsset]) {
+                    this.userBalances.get(userId)![baseAsset] = {
                         available: 0,
                         locked: 0
                     }

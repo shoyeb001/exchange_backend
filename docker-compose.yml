@@ -62,6 +62,7 @@ services:
       - trade
     volumes:
       - ./engine:/app
+      - engine-data:/app/data
     command: npm run dev
 
   gateway:
@@ -105,3 +106,4 @@ services:
 volumes:
   mongo-auth-data:
   pgdata:
+  engine-data:
