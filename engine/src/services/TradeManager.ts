@@ -4,6 +4,7 @@ import { CANCEL_ORDER, CREATE_ORDER, GET_DEPTH, GET_OPEN_ORDERS, MessageFromApi,
 import { TRADING_PAIRS } from "../utils/tradingPairs";
 import fs from 'fs';
 import dotenv from "dotenv";
+import { handelNewTrade } from "../utils/tickKline";
 
 dotenv.config();
 export const BASE_CURRENCY = 'USDC';
@@ -210,7 +211,9 @@ export class TradeManager {
         //updateDBOrders
         this.updateOrderDb(fills);
         //uplish ws depth update
+        this.publishWsDepthUpdate(market, side, price, fills);
         //publish ws trades
+        this.publishWsTradeUpdate(market, fills);
         return {
             executedQuantity,
             fills,
@@ -263,6 +266,13 @@ export class TradeManager {
 
     createDbTrade(fills: Fill[], userId: string, market: string) {
         fills.forEach(fill => {
+            handelNewTrade({
+                tradeId: fill.tradeId,
+                price: fill.price,
+                qty: fill.quantity,
+                market: market,
+                time: Date.now()
+            });
             RedisManager.getInstance().pushMessage({
                 type: "TRADE_ADDED",
                 payload: {
@@ -338,6 +348,55 @@ export class TradeManager {
             this.userBalances.get(userId)![baseAsset].available -= quantity;
             this.userBalances.get(userId)![baseAsset].locked += quantity;
         }
+    }
+
+    publishWsDepthUpdate(market: string, side: string, price: number, fills: Fill[]) {
+        const orderBook = this.orderBooks.find(book => book.ticker() === market);
+        if (!orderBook) {
+            throw new Error("No market found");
+        }
+        const depth = orderBook.getDepth();
+        if (side === "buy") {
+            const updatedAsks = depth.asks.filter(ask => fills.map(fill => fill.price).includes(parseFloat(ask[0])));
+            const updatedBids = depth.bids.find(bid => parseFloat(bid[0]) === price);
+            //publish to ws
+            RedisManager.getInstance().publishMessage(`depth_${market}`, {
+                stream: `depth@${market}`,
+                data: {
+                    e: "depth",
+                    b: updatedBids ? [updatedBids] : [],
+                    a: updatedAsks,
+                }
+            })
+        } else {
+            const updatedAsks = depth.asks.find(ask => parseFloat(ask[0]) === price);
+            const updatedBids = depth.bids.filter(bid => fills.map(fill => fill.price).includes(parseFloat(bid[0])));
+            //publish to ws
+            RedisManager.getInstance().publishMessage(`depth_${market}`, {
+                stream: `depth@${market}`,
+                data: {
+                    e: "depth",
+                    b: updatedBids,
+                    a: updatedAsks ? [updatedAsks] : [],
+                }
+            })
+        }
+    }
+
+    publishWsTradeUpdate(market: string, fills: Fill[]) {
+        fills.forEach((fill) => {
+            RedisManager.getInstance().publishMessage(`trade_${market}`, {
+                stream: `trade@${market}`,
+                data: {
+                    e: "trade",
+                    t: fill.tradeId,
+                    m: fill.isBuyerMaker,
+                    p: fill.price.toString(),
+                    q: fill.quantity.toString(),
+                    s: market
+                }
+            })
+        })
     }
 
     addFunds(userId: string, amount: number) {

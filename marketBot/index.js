@@ -1,6 +1,6 @@
 import axios from "axios";
 const Base_URL = "http://localhost:3000/trade/api/order/create";
-const tokens = ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTIyYzgzYTJhMmFmNjBkNTg0YWYyOCIsInJvbGUiOiJ1c2VyIiwic2Vzc2lvbklkIjoic2Vzc182ODEyMmM4M2EyYTJhZjYwZDU4NGFmMjhfMTc0NjAyMTUwNzA5NSIsImlhdCI6MTc0NjAyMTUwNywiZXhwIjoxNzQ2NjI2MzA3fQ.8ILwjP8kgVCH3-N73l7tFcYR09owVLfkphvnz_3CUp0", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTIyYzgzYTJhMmFmNjBkNTg0YWYyOCIsInJvbGUiOiJ1c2VyIiwic2Vzc2lvbklkIjoic2Vzc182ODEyMmM4M2EyYTJhZjYwZDU4NGFmMjhfMTc0NjAyMTUwNzA5NSIsImlhdCI6MTc0NjAyMTUwNywiZXhwIjoxNzQ2NjI2MzA3fQ.8ILwjP8kgVCH3-N73l7tFcYR09owVLfkphvnz_3CUp0"]
+const tokens = ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTZmMDgzNjU3OWM0YzRhMjk4MWMxNCIsInJvbGUiOiJ1c2VyIiwic2Vzc2lvbklkIjoic2Vzc182ODE2ZjA4MzY1NzljNGM0YTI5ODFjMTRfMTc0NjMzMzgyNzYyMyIsImlhdCI6MTc0NjMzMzgyNywiZXhwIjoxNzQ2OTM4NjI3fQ.ITPnM7HfsO_nRD-7A6kGm7HcOb1x1fdo7QdXxP4wVAc", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTRlNzQ4ZjZiOWRkYzk2ODFkYzRhZiIsInJvbGUiOiJ1c2VyIiwic2Vzc2lvbklkIjoic2Vzc182ODE0ZTc0OGY2YjlkZGM5NjgxZGM0YWZfMTc0NjMzNDAzMTI5NyIsImlhdCI6MTc0NjMzNDAzMSwiZXhwIjoxNzQ2OTM4ODMxfQ.jFanPYyma8npyIboxhdh28YcwsXzYytgkXewB2Sa2GQ"]
 const market = "BTC_USDC";
 
 const placeOrders = async()=>{
@@ -20,15 +20,20 @@ const placeOrders = async()=>{
         type: "market",
         timeInForce: "GTC"
     }
-    await axios.post(Base_URL, buyOrder, {
+    const res = await axios.post(Base_URL, buyOrder, {
         headers:{
-            Authorization: tokens[0]
+            Authorization:`Bearer ${tokens[0]}`
         }
     });
-    await axios.post(Base_URL, sellOrder, {
+    console.log(res.data);
+    const res2 = await axios.post(Base_URL, sellOrder, {
         headers:{
-            Authorization: tokens[1]
+            Authorization:`Bearer ${tokens[1]}`
         }
     });
+    console.log(res2.data)
 }
 
+while(true){
+   await placeOrders()
+}

@@ -1,4 +1,5 @@
 import { createClient, RedisClientType } from "redis";
+import { WsMessage } from "../@types/wsMsg.type";
 export class RedisManager {
     private publisher: RedisClientType;
     private subscriber: RedisClientType;
@@ -28,5 +29,8 @@ export class RedisManager {
     }
     public async popMessageFromQueue(name: string) {
         return await this.publisher.rPop(name)
+    }
+    public publishMessage(channel: string, message: WsMessage) {
+        this.subscriber.publish(channel, JSON.stringify(message));
     }
 }
